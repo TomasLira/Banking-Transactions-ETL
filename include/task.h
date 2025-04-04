@@ -5,9 +5,13 @@
 #include <mutex>
 #include <utility>
 #include <memory>
+#include <typeindex>
 #include "dataframe.h"
 
-struct OutputSpec {};
+struct OutputSpec {
+    int columnCount = 0;
+    std::vector<std::type_index> columnTypes = {};
+};
 
 class Task {
 public:

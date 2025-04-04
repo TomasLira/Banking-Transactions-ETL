@@ -1,6 +1,7 @@
 #include <iostream>
 #include "dataframe.h"   
 #include "task.h"    
+#include <typeindex>
 
 class PrintColumnInfoTransformer : public Transformer {
 public:
@@ -284,5 +285,15 @@ int main()
         }
     }
 
+    // =======================
+    // 7) Output Spec testes
+    // =======================
+    OutputSpec spec;
+    std::cout << "Tamanho do spec: " << spec.columnCount << std::endl;
+    std::type_index info = typeid(int);
+    spec.columnTypes.push_back(typeid(Column<int>));
+    spec.columnCount++;
+    std::cout << "Tamanho do spec: " << spec.columnCount << std::endl;
+    std::cout << "Tipo do elemento 0: " << spec.columnTypes.at(0).name() << std::endl;
     return 0;
 }

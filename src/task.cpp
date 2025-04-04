@@ -1,4 +1,6 @@
 #include "task.h"
+#include <memory>
+#include <typeindex>
 
 void Task::addNext(std::shared_ptr<Task> nextTask) {
     nextTasks.push_back(nextTask);
