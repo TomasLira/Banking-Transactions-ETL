@@ -290,10 +290,20 @@ int main()
     // =======================
     OutputSpec spec;
     std::cout << "Tamanho do spec: " << spec.columnCount << std::endl;
-    std::type_index info = typeid(int);
     spec.columnTypes.push_back(typeid(Column<int>));
+    spec.columnTypes.push_back(typeid(Column<float>));
+    spec.columnTypes.push_back(typeid(Column<float>));
+    spec.columnNames.push_back("Age");
+    spec.columnNames.push_back("Income");
+    spec.columnNames.push_back("Size");
+    spec.columnCount++;
+    spec.columnCount++;
     spec.columnCount++;
     std::cout << "Tamanho do spec: " << spec.columnCount << std::endl;
     std::cout << "Tipo do elemento 0: " << spec.columnTypes.at(0).name() << std::endl;
+    std::cout << "Tipo do elemento 1: " << spec.columnTypes.at(1).name() << std::endl;
+    std::cout << "Tipo do elemento 2: " << spec.columnTypes.at(2).name() << std::endl;
+    DataFrame df2 = DataFrame(spec);
+    std::cout << df2.toString() << std::endl;
     return 0;
 }

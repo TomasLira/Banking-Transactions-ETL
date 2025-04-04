@@ -1,6 +1,7 @@
 #ifndef SERIES_H
 #define SERIES_H
 
+//#include "task.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -8,6 +9,7 @@
 #include <stdexcept>
 #include <memory>
 #include <typeinfo>
+#include <typeindex>
 
 
 class BaseColumn {
@@ -44,12 +46,19 @@ public:
     std::string toString() const;
 };
 
+struct OutputSpec {
+    int columnCount = 0;
+    std::vector<std::string> columnNames = {};
+    std::vector<std::type_index> columnTypes = {};
+};
 
 class DataFrame {
 private:
     std::vector<std::shared_ptr<BaseColumn>> columns;
 
 public:
+    DataFrame() = default;
+    DataFrame(const OutputSpec&);
     void addColumn(std::shared_ptr<BaseColumn> column);
     std::shared_ptr<BaseColumn> getColumn(size_t index) const;
     std::vector<std::string> getRow(size_t row) const;

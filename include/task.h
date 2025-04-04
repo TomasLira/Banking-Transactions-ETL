@@ -8,11 +8,6 @@
 #include <typeindex>
 #include "dataframe.h"
 
-struct OutputSpec {
-    int columnCount = 0;
-    std::vector<std::type_index> columnTypes = {};
-};
-
 class Task {
 public:
     virtual ~Task() = default;

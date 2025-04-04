@@ -17,6 +17,19 @@ std::string BaseColumn::getTypeName() const {
 }
 
 
+DataFrame::DataFrame(const OutputSpec& spec){
+    for (int i = 0; i < spec.columnCount; i++){
+        std::cout << i << std::endl;
+        if(spec.columnTypes.at(i) == typeid(Column<int>)){
+            auto intColumn = std::make_shared<Column<int>>(spec.columnNames.at(i), i);
+            addColumn(intColumn);
+        } else if(spec.columnTypes.at(i) == typeid(Column<float>)){
+            auto floatColumn = std::make_shared<Column<float>>(spec.columnNames.at(i), i);
+            addColumn(floatColumn);
+        }
+    }
+}
+
 void DataFrame::addColumn(std::shared_ptr<BaseColumn> column) {
     columns.push_back(column);
 }
