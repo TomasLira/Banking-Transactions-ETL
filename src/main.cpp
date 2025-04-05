@@ -1,7 +1,7 @@
 #include <iostream>
 #include "dataframe.h"   
 #include "task.h"
-#include "dataRepository.h"
+//#include "dataRepository.h"
 
 #include <vector>
 #include <any>
@@ -363,7 +363,146 @@ void teste2() {
 }
 
 
+void printFullMapping(const DataFrame &df, const std::string &title) {
+    std::vector<size_t> rowOrder = df.getRowOrder();
+    std::cout << "\n== " << title << " ==" << std::endl;
+    for (size_t i = 0; i < rowOrder.size(); ++i) {
+        try {
+            std::vector<std::string> row = df.getRow(i);
+            std::cout << "Relative Index: " << i << " -> Actual Index: " << rowOrder[i] << " | Data: ";
+            for (const auto &val : row) {
+                std::cout << val << " | ";
+            }
+            std::cout << std::endl;
+        } catch (const std::exception &ex) {
+            std::cout << "Error at relative index " << i << ": " << ex.what() << std::endl;
+        }
+    }
+}
+
+
+void teste3() {
+    auto idColumn = std::make_shared<Column<int>>("id", 0, -1);
+    auto nomeColumn = std::make_shared<Column<std::string>>("nome", 1, "NA");
+
+    idColumn->addValue(1);
+    idColumn->addValue(2);
+    idColumn->addValue(3);
+
+    nomeColumn->addValue("Alice");
+    nomeColumn->addValue("Bob");
+    nomeColumn->addValue("Carol");
+
+    DataFrame df;
+    df.addColumn(idColumn);
+    df.addColumn(nomeColumn);
+
+    std::cout << "== DataFrame Inicial ==" << std::endl;
+    std::cout << df.toString() << std::endl;
+
+    std::vector<std::any> row1 {4, std::string("David")};
+    df.addRow(row1);
+    
+    std::vector<std::string> row2 {"5", "Eve"};
+    df.addRow(row2);
+    
+    std::vector<variantRow> row3 {6, std::string("Frank")};
+    df.addRow(row3);
+
+    std::cout << "== DataFrame Pós Inserção ==" << std::endl;
+    std::cout << df.toString() << std::endl;
+
+    // Testa getRow: interpreta o índice como relativo (usando rowOrder internamente)
+    std::cout << "== Testando getRow (índice relativo) ==" << std::endl;
+    for (size_t i = 0; i < df.getRowOrder().size(); ++i) {
+         try {
+              std::vector<std::string> row = df.getRow(i);
+              std::cout << "Linha relativa " << i << " (índice real " << df.getRowOrder()[i] << "): ";
+              for (const auto &val : row) {
+                  std::cout << val << " | ";
+              }
+              std::cout << std::endl;
+         } catch (std::exception &ex) {
+              std::cout << "Erro: " << ex.what() << std::endl;
+         }
+    }
+
+
+
+    // Testa getElement para recuperar um elemento específico
+    try {
+         // Exemplo: recuperar o valor na linha relativa 2 e coluna 1 (coluna "nome")
+         std::string nome = df.getElement<std::string>(2, 1);
+         std::cout << "\nElemento na linha relativa 2, coluna 1: " << nome << std::endl;
+    } catch (std::exception &ex) {
+         std::cout << "Erro ao acessar elemento: " << ex.what() << std::endl;
+    }
+
+    // Testa alteração de rowOrder:
+    std::cout << "\n== Testando alteração de rowOrder ==" << std::endl;
+    std::vector<size_t> originalOrder = df.getRowOrder();
+    std::cout << "Ordem original: ";
+    for (size_t idx : originalOrder) {
+         std::cout << idx << " ";
+    }
+    std::cout << std::endl;
+
+    // Altera a ordem: inverte o vetor de índices
+    std::vector<size_t> newOrder = originalOrder;
+    std::reverse(newOrder.begin(), newOrder.end());
+
+    // Aplica a nova ordem
+    df.setRowOrder(newOrder);
+
+    std::cout << "Nova ordem (invertida): ";
+    for (size_t idx : newOrder) {
+         std::cout << idx << " ";
+    }
+    std::cout << std::endl;
+
+
+    std::cout << "\n== DataFrame com rowOrder alterado (usando getRow) ==" << std::endl;
+    for (size_t i = 0; i < df.getRowOrder().size(); ++i) {
+        try {
+            std::vector<std::string> row = df.getRow(i);
+            std::cout << "Linha relativa " << i << " (índice real " << df.getRowOrder()[i] << "): ";
+            for (const auto &val : row) {
+                std::cout << val << " | ";
+            }
+            std::cout << std::endl;
+        } catch (const std::exception &ex) {
+            std::cout << "Erro: " << ex.what() << std::endl;
+        }
+    }
+    
+    
+    // Testa getElement após alteração de ordem
+    try {
+
+         int id = df.getElement<int>(0, 0);
+         std::string nome = df.getElement<std::string>(0, 1);
+         std::cout << "\nApós alteração, elemento na linha relativa 0: id = " << id << ", nome = " << nome << std::endl;
+    } catch (std::exception &ex) {
+         std::cout << "Erro ao acessar elemento após alteração: " << ex.what() << std::endl;
+    }
+
+    // Testando getValue diretamente nas colunas
+    // getValue NÃO aplica rowOrder!! Deve-se por fora!!!! Por conta da implementação do getRow
+    std::cout << "\n== Testando getValue diretamente na coluna 'id' ==" << std::endl;
+    for (size_t i = 0; i < idColumn->size(); ++i) {
+        std::cout << "id[" << i << "] = " << idColumn->getValue(i) << std::endl;
+    }
+
+    std::cout << "\n== Testando getValue com rowORder diretamente na coluna 'id' ==" << std::endl;
+    for (size_t i = 0; i < idColumn->size(); ++i) {
+        std::cout << "id[" << i << "] = " << idColumn->getValue(df.getRowOrder()[i]) << std::endl;
+    }
+
+}
+
+
+
 int main() {
-    teste2();
+    teste3();
     return 0;
 }

@@ -2,7 +2,6 @@
 #include "dataframe.h"
 #include <exception>
 
-
 BaseColumn::BaseColumn(const std::string &id, int pos, const std::string &dt)
     : identifier(id), position(pos), dataType(dt) {
 }
@@ -18,15 +17,20 @@ std::string BaseColumn::getTypeName() const {
     return dataType;
 }
 
-//se tem zero colunas, seta o tamanho do dataframe para o da coluna. Se tem alguma, então verifica se a coluna bate o tamanho
+// Se há zero colunas, seta o tamanho do dataframe para o da coluna. Caso contrário, verifica se a coluna bate com o tamanho
 void DataFrame::addColumn(std::shared_ptr<BaseColumn> column) {
-    if (columns.size() == 0){
+    if (columns.empty()){
         columns.push_back(column);
         dataFrameSize = column->size();
+        // Preenche o vetor rowOrder automaticamente com os índices reais
+        rowOrder.resize(dataFrameSize);
+        for (size_t i = 0; i < dataFrameSize; ++i) {
+            rowOrder[i] = i;
+        }
     }
     else {
         if (column->size() != dataFrameSize){
-            throw "Tried to add a column that doenst have the number of rows of the dataframe";
+            throw "Tried to add a column that doesn't have the number of rows of the dataframe";
         } else {
             columns.push_back(column);
         }
@@ -41,6 +45,7 @@ void DataFrame::addRow(const std::vector<std::any> &row) {
         }
         columns[i]->addAny(row[i]);
     }
+    rowOrder.push_back(dataFrameSize); // Adiciona o índice "real" da nova linha
     dataFrameSize++;
 }
 
@@ -52,6 +57,7 @@ void DataFrame::addRow(const std::vector<std::string> &row) {
         }
         columns[i]->addAny(row[i]);
     }
+    rowOrder.push_back(dataFrameSize); // add o índice "real" da nova linha
     dataFrameSize++;
 }
 
@@ -63,10 +69,9 @@ void DataFrame::addRow(const std::vector<variantRow> &row) {
         }
         columns[i]->addAny(row[i]);
     }
+    rowOrder.push_back(dataFrameSize); // add o índice "real" da nova linha
     dataFrameSize++;
 }
-
-
 
 std::shared_ptr<BaseColumn> DataFrame::getColumn(size_t index) const {
     if (index >= columns.size()) {
@@ -75,21 +80,25 @@ std::shared_ptr<BaseColumn> DataFrame::getColumn(size_t index) const {
     return columns[index];
 }
 
-std::vector<std::string> DataFrame::getRow(size_t row) const {
+// relative INdex
+std::vector<std::string> DataFrame::getRow(size_t relIndex) const {
+    if(relIndex >= rowOrder.size()){
+        throw std::out_of_range("Relative index out of bounds.");
+    }
+    size_t actualIndex = rowOrder[relIndex];
     std::vector<std::string> rowData;
     if (columns.empty())
         return rowData;
-
     for (const auto &col : columns) {
-        if (row < col->size()) {
-            rowData.push_back(col->getValue(row));
+        if (actualIndex < col->size()) {
+            rowData.push_back(col->getValue(actualIndex));
         } else {
-            // Caso a coluna não tenha tantos elementos
             rowData.push_back("N/A");
         }
     }
     return rowData;
 }
+
 
 std::string DataFrame::toString() const {
     std::ostringstream oss;
@@ -119,4 +128,24 @@ std::string DataFrame::toString() const {
         oss << "\n";
     }
     return oss.str();
+}
+
+// Retorna o vetor de índices das linhas
+std::vector<size_t> DataFrame::getRowOrder() const {
+    return rowOrder;
+}
+
+void DataFrame::setRowOrder(const std::vector<size_t>& newOrder) {
+    if(newOrder.size() != rowOrder.size()){
+        throw std::invalid_argument("New row order must have the same size as the current row order.");
+    }
+    rowOrder = newOrder;
+}
+
+void DataFrame::resetRowOrder() {
+    rowOrder.clear();
+    rowOrder.resize(dataFrameSize);
+    for (size_t i = 0; i < dataFrameSize; ++i) {
+        rowOrder[i] = i;
+    }
 }

@@ -77,6 +77,7 @@ class DataFrame {
 private:
     std::vector<std::shared_ptr<BaseColumn>> columns;
     size_t dataFrameSize = 0;
+    std::vector<size_t> rowOrder; // Novo vetor de índices que guarda a posição "real" de cada linha
 
 public:
     void addColumn(std::shared_ptr<BaseColumn> column);
@@ -88,14 +89,19 @@ public:
     template <typename T>
     const std::vector<T>& getColumnData(size_t index) const;
 
+
     template <typename T>
     T getElement(size_t rowIdx, size_t colIdx) const;
-
+    
     void addRow(const std::vector<std::any> &row);
     void addRow(const std::vector<std::string> &row);
     void addRow(const std::vector<variantRow> &row);
-};
 
+    // Novo: PAra vetor de índices
+    std::vector<size_t> getRowOrder() const;
+    void setRowOrder(const std::vector<size_t>& newOrder);
+    void resetRowOrder();
+};
 
 template <typename T>
 Column<T>::Column(const std::string &id, int pos, T NAValue)
@@ -107,6 +113,7 @@ void Column<T>::addValue(const T &value) {
     data.push_back(value);
 }
 
+// Devo também usar RowOrder aqui??
 template <typename T>
 std::string Column<T>::getValue(size_t index) const {
     if (index >= data.size()) {
@@ -149,7 +156,12 @@ const std::vector<T>& DataFrame::getColumnData(size_t index) const {
 
 template <typename T>
 T DataFrame::getElement(size_t rowIdx, size_t colIdx) const {
-    return getColumnData<T>(colIdx)[rowIdx];
+    if(rowIdx >= rowOrder.size()){
+        throw std::out_of_range("Relative row index out of bounds.");
+    }
+    size_t actualIndex = rowOrder[rowIdx];
+    return getColumnData<T>(colIdx)[actualIndex];
 }
+
 
 #endif
