@@ -53,6 +53,7 @@ void DataFrame::addRow(const std::vector<std::any> &row) {
         }
         columns[i]->addAny(row[i]);
     }
+    rowOrder.push_back(dataFrameSize);
     dataFrameSize++;
 }
 
@@ -64,6 +65,7 @@ void DataFrame::addRow(const std::vector<std::string> &row) {
         }
         columns[i]->addAny(row[i]);
     }
+    rowOrder.push_back(dataFrameSize);
     dataFrameSize++;
 }
 
@@ -75,6 +77,7 @@ void DataFrame::addRow(const std::vector<VarCell> &row) {
         }
         columns[i]->addAny(row[i]);
     }
+    rowOrder.push_back(dataFrameSize);
     dataFrameSize++;
 }
 
@@ -105,13 +108,19 @@ std::shared_ptr<BaseColumn> DataFrame::getColumn(const std::string &columnName) 
 }
 
 std::vector<std::string> DataFrame::getRow(size_t row) const {
-    std::vector<std::string> rowData;
+    
+    if(row >= rowOrder.size()){
+        throw std::out_of_range("Relative index out of bounds.");
+    }
+
+    size_t actualIndex = rowOrder[row];
+    std::vector<std::string> rowData;  
+
     if (columns.empty())
         return rowData;
-
     for (const auto &col : columns) {
         if (row < col->size()) {
-            rowData.push_back(col->getValue(row));
+            rowData.push_back(col->getValue(actualIndex));
         } else {
             // Caso a coluna não tenha tantos elementos
             rowData.push_back("N/A");
@@ -152,6 +161,26 @@ std::string DataFrame::toString(size_t n) const {
     }
     return oss.str();
 }
+
+std::vector<size_t> DataFrame::getRowOrder() const {
+    return rowOrder;
+}
+
+void DataFrame::setRowOrder(const std::vector<size_t>& newOrder) {
+    if(newOrder.size() != rowOrder.size()){
+        throw std::invalid_argument("New row order must have the same size as the current row order.");
+    }
+    rowOrder = newOrder;
+}
+
+void DataFrame::resetRowOrder() {
+    rowOrder.clear();
+    rowOrder.resize(dataFrameSize);
+    for (size_t i = 0; i < dataFrameSize; ++i) {
+        rowOrder[i] = i;
+    }
+}
+
 
 std::shared_ptr<DataFrame> DataFrame::emptyCopy() {
     auto df = std::make_shared<DataFrame>();

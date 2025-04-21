@@ -1294,7 +1294,42 @@ void testePipelineTransacoes(int nThreads = 2) {
     std::cout << "[PIPELINE] Finalizado.\n";
 }
 
+void testeRowOrder() {
+    std::cout << "\n--- Teste: RowOrder no DataFrame ---\n";
+
+    DataFrame df;
+    df.addColumn<int>("id");
+    df.addColumn<std::string>("nome");
+    df.addColumn<double>("saldo");
+    df.addColumn<std::string>("obs");  
+
+    std::vector<std::any> row1 {1, std::string("Ana"), 1000.5, std::string("cliente vip")};
+    std::vector<std::any> row2 {42, std::string("John"), 5000.0, nullptr};
+    std::vector<std::any> row3 {77, std::string("Bruna"), 200.75, std::string("")};
+
+    df.addRow(row1);
+    df.addRow(row2);
+    df.addRow(row3);
+
+    std::cout << "\n[DataFrame original (ordem natural)]\n";
+    std::cout << df.toString();
+
+    std::vector<size_t> novaOrdem = {2, 1, 0};
+    df.setRowOrder(novaOrdem);
+
+    std::cout << "\n[DataFrame com ordem invertida]\n";
+    std::cout << df.toString();
+
+    df.resetRowOrder();
+
+    std::cout << "\n[DataFrame após reset da ordem]\n";
+    std::cout << df.toString();
+
+    std::cout << "--- Fim do teste RowOrder ---\n";
+}
+
+
 int main() {
-    testePipelineTransacoes();
+    testeRowOrder();
     return 0;
 }

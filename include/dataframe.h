@@ -96,6 +96,7 @@ private:
     size_t dataFrameSize = 0;
     std::vector<std::shared_ptr<BaseColumn>> columns;
     std::unordered_map<std::string, int> columnMap;
+    std::vector<size_t> rowOrder;
 
 public:
     void addColumn(std::shared_ptr<BaseColumn> column);
@@ -124,6 +125,10 @@ public:
 
     std::shared_ptr<DataFrame> emptyCopy();
     std::shared_ptr<DataFrame> emptyCopy(std::vector<std::string> colNames);
+
+    std::vector<size_t> getRowOrder() const;
+    void setRowOrder(const std::vector<size_t>& newOrder);
+    void resetRowOrder();
 };
 
 
@@ -136,7 +141,7 @@ template <typename T>
 void Column<T>::addValue(const T &value) {
     data.push_back(value);
 }
-
+// NÃO USEI ROW_ORDER AQUI
 template <typename T>
 std::string Column<T>::getValue(size_t index) const {
     if (index >= data.size()) {
@@ -188,7 +193,11 @@ const std::vector<T>& DataFrame::getColumnData(size_t index) const {
 
 template <typename T>
 T DataFrame::getElement(size_t rowIdx, size_t colIdx) const {
-    return getColumnData<T>(colIdx).at(rowIdx);
+    if(rowIdx >= rowOrder.size()){
+        throw std::out_of_range("Relative row index out of bounds.");
+    }
+    size_t actualIndex = rowOrder[rowIdx];
+    return getColumnData<T>(colIdx).at(actualIndex);
 }
 
 template <typename T>
@@ -197,7 +206,11 @@ void DataFrame::setElement(size_t rowIdx, size_t colIdx, T element) const {
     if (!col) {
         throw std::bad_cast();
     }
-    col->setValue(rowIdx, element);
+    if(rowIdx >= rowOrder.size()){
+        throw std::out_of_range("Relative row index out of bounds.");
+    }
+    size_t actualIndex = rowOrder[rowIdx];
+    col->setValue(actualIndex, element);
 }
 
 /// TODO: melhorar verificação das posições
